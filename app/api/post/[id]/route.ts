@@ -110,3 +110,50 @@ export async function PATCH(req: NextRequest, { params }: PostParams) {
     };
   }
 }
+
+export async function DELETE(_: Request, { params }: PostParams) {
+  try {
+    const { id } = await params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Post Id not valid",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    const connectionData = await connectDB();
+    if (!connectionData.success) {
+      return NextResponse.json(connectionData, { status: 500 });
+    }
+
+    const post = await Post.findByIdAndDelete(id);
+    if (!post) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Post not found",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    return NextResponse.json({
+      post,
+      success: true,
+      message: "Post Deleted successfully",
+    });
+  } catch (error) {
+    console.error("An error occurred when get post by id", error);
+    return NextResponse.json({
+      success: false,
+      message: "An error occurred. Please try again latter.",
+    });
+  }
+}
